@@ -12,11 +12,11 @@ export default () => {
   return (
     <>
       <h1 className="mb-4 text-3xl font-bold md:text-5xl">Lyricist's Room</h1>
-      <input placeholder="키워드를 입력해주세요.. 한 단어일수록 좋아요!" value={topic} onChange={e => setTopic(e.target.value)} />
-      <input placeholder="키메시지를 입력해주세요!" value={key} onChange={e => setKey(e.target.value)} />
-      <select aria-label="분위기" value={mood} onChange={e => setMood(e.target.value)}>
-        <option>가사 분위기를 선택해주세요!</option>
-        {['그리움', '당당함', '불안함', '설렘', '슬픔', '신남', '외로움', '우울함', '평화로움', '화남', '희망찬'].map(mood => (
+      <input placeholder="Please enter a keyword.. The shorter the better!" value={topic} onChange={e => setTopic(e.target.value)} />
+      <input placeholder="Please enter the key message!" value={key} onChange={e => setKey(e.target.value)} />
+      <select aria-label="mood" value={mood} onChange={e => setMood(e.target.value)}>
+        <option>Please select the mood of the lyrics!</option>
+        {['Nostalgia', 'Confidence', 'Anxiety', 'Excitement', 'Sadness', 'Cheerfulness', 'Loneliness', 'Depression', 'Peacefulness', 'Anger', 'Hopeful'].map(mood => (
           <option key={mood}>{mood}</option>
         ))}
       </select>
@@ -25,7 +25,7 @@ export default () => {
           start
         </button>
         <button className="w-[200px] rounded-md bg-blue-400 p-2.5 text-center text-xl" onClick={() => setShowGuide(true)}>
-          사용자가이드
+          User Guide
         </button>
       </div>
 
@@ -35,7 +35,7 @@ export default () => {
             <button className="absolute right-2 top-2 text-xl" onClick={() => setShowGuide(false)}>
               &times;
             </button>
-            <img src="how-to.png" alt="사용자 가이드" className="w-full" />
+            <img src="how-to.png" alt="User Guide" className="w-full" />
           </div>
         </div>
       )}

@@ -50,6 +50,7 @@ function Graph() {
     const json = await (await fetch(`${searchParams.get('mood')}.json`)).json() // 분위기 json 가져오기
     json.messages.push({role: 'user', content})
     const response = await openai.chat.completions.create(json)
+    console.log(response.choices[0].message.content)
     const [keyword, relatedWords] = response.choices[0].message.content.match(/(?<=1개: ).+|(?<=6개: ).+/g).map(words => words.split(', '))
     const newNodes = [keyword, ...relatedWords].map((name, i) => ({id: graph.nodes.length + i + 1, name, x: node.x + 50 * Math.cos(i / 2), y: node.y + 50 * Math.sin(i / 2)}))
     setGraph(prevGraph => ({nodes: [...prevGraph.nodes, ...newNodes], links: [...prevGraph.links, ...newNodes.map(newNode => ({source: node.id, target: newNode.id}))]}))
@@ -278,10 +279,10 @@ function Graph() {
           <div className="fixed bottom-0 right-0 z-50 m-4 w-96 rounded-lg bg-white p-4 shadow-lg">
             <h2 className="mb-2 text-lg font-bold">Survey</h2>
             <p className="mb-4">
-              데모버전 구글폼 피드백에 참여해주시면, 추첨을 통해 스타벅스 10,000원권 기프티콘을 드리고 있으니 많은 관심 부탁드려요.
+            Please participate in the demo version Google Form feedback. We are giving out a 10,000 won Starbucks gift certificate by lottery, so please show your interest.
               <br /><br />
               <Link className="text-sky-500" href="https://forms.gle/WMtrJzuCT5dkt4267" target="_blank">
-                [Lyricist's Room 피드백 구글폼]
+                [Lyricist's Room Feedback Google Form]
               </Link>
             </p>
             <button onClick={() => setShowSurvey(false)} className="rounded-md bg-blue-500 px-4 py-2 text-white">
