@@ -262,7 +262,7 @@ function Graph() {
             ))}
           </div>
 
-          <div className="fixed bottom-0 z-50 mb-8 flex w-screen items-center justify-center md:w-[600px]">
+          <div className="z-50 mb-8 flex w-screen items-center justify-center md:w-[600px]">
             <input
               type="text"
               placeholder="MAKE A SENTENCE USING THE CHOSEN WORD"
