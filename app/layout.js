@@ -4,15 +4,15 @@ import {GoogleAnalytics} from '@next/third-parties/google'
 
 export const metadata = {
   title: "Lyricist's Room",
-  description: "작사가를 위한 창작 공간, Lyricist's Room입니다!",
-  canonical: 'https://www.lyricistsroom.com/',
+  description: "Lyricist's Room, a creative space for songwriters.",
+  canonical: 'https://www.roomforcreator.com/',
   openGraph: {
     type: 'website',
-    locale: 'ko_KR',
-    url: 'https://www.lyricistsroom.com/',
+    locale: 'en_US',
+    url: 'https://www.roomforcreator.com/',
     images: [
       {
-        url: 'https://www.lyricistsroom.com/seo.jpg',
+        url: 'https://www.roomforcreator.com/seo.jpg',
         width: 800,
         height: 600,
         alt: 'Og Image Alt',
@@ -36,7 +36,7 @@ export default ({children}) => (
         <img src="github-mark.svg" alt="깃허브" className="w-10" />
       </a>
       <Analytics />
-      <GoogleAnalytics gaId="G-LR5133HTDQ" />
+      <GoogleAnalytics gaId="G-57E30SFWTT" />
     </body>
   </html>
 )
