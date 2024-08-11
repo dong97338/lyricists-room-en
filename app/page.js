@@ -11,11 +11,11 @@ export default () => {
 
   return (
     <>
-      <h1 className="mb-4 text-3xl font-bold md:text-5xl">Lyricist's Room</h1>
+      <h1 className="mb-4 text-3xl font-bold md:text-5xl">Room for Creators!</h1>
       <input placeholder="Please enter a keyword.. The shorter the better!" value={topic} onChange={e => setTopic(e.target.value)} />
       <input placeholder="Please enter the key message!" value={key} onChange={e => setKey(e.target.value)} />
       <select aria-label="mood" value={mood} onChange={e => setMood(e.target.value)}>
-        <option>Please select the mood of the lyrics!</option>
+        <option>Please select the mood!</option>
         {['Nostalgia', 'Confidence', 'Anxiety', 'Excitement', 'Sadness', 'Cheerfulness', 'Loneliness', 'Depression', 'Peacefulness', 'Anger', 'Hopeful'].map(mood => (
           <option key={mood}>{mood}</option>
         ))}
