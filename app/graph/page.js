@@ -5,7 +5,24 @@ import Link from 'next/link'
 import * as d3 from 'd3'
 import OpenAI from 'openai'
 import dotenv from 'dotenv'
+import {initializeApp, getApps} from 'firebase/app'
+import {getFirestore, doc, setDoc} from 'firebase/firestore'
 dotenv.config()
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+}
+
+if (!getApps().length) {
+  initializeApp(firebaseConfig)
+}
+
+const db = getFirestore()
 
 function Graph() {
   const searchParams = useSearchParams()
@@ -18,10 +35,15 @@ function Graph() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSurvey, setShowSurvey] = useState(false) // 설문조사 팝업 상태 관리
   const [isFirstMakeClick, setIsFirstMakeClick] = useState(true) // 첫 클릭 여부 상태 관리
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
   const sidebarOpenRef = useRef(sidebarOpen) // 사이드바 상태를 참조할 ref
   const svgRef = useRef(null)
   const openai = new OpenAI({apiKey: process.env.NEXT_PUBLIC_OPENAI_KEY, dangerouslyAllowBrowser: true})
+  const key = searchParams.get('key')
+  const mood = searchParams.get('mood')
+
+  // Generate a unique session ID
+  const sessionId = useRef(Date.now().toString(36) + Math.random().toString(36).substr(2, 9)).current
 
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -46,11 +68,10 @@ function Graph() {
       return
     }
     setLoadingNode(node.id)
-    const content = `""키워드"": ${node.name}\n""키메시지"": ${searchParams.get('key') || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`
-    const json = await (await fetch(`${searchParams.get('mood')}.json`)).json() // 분위기 json 가져오기
+    const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`
+    const json = await (await fetch(`${mood}.json`)).json() // 분위기 json 가져오기
     json.messages.push({role: 'user', content})
     const response = await openai.chat.completions.create(json)
-    console.log(response.choices[0].message.content)
     const [keyword, relatedWords] = response.choices[0].message.content.match(/(?<=1개: ).+|(?<=6개: ).+/g).map(words => words.split(', '))
     const newNodes = [keyword, ...relatedWords].map((name, i) => ({id: graph.nodes.length + i + 1, name, x: node.x + 50 * Math.cos(i / 2), y: node.y + 50 * Math.sin(i / 2)}))
     setGraph(prevGraph => ({nodes: [...prevGraph.nodes, ...newNodes], links: [...prevGraph.links, ...newNodes.map(newNode => ({source: node.id, target: newNode.id}))]}))
@@ -61,46 +82,43 @@ function Graph() {
 
   const handleMakeClick = async () => {
     if (!sentence.trim()) {
-      return; // 입력창에 아무것도 적혀있지 않으면 함수 종료
+      return // 입력창에 아무것도 적혀있지 않으면 함수 종료
     }
 
     if (isFirstMakeClick) {
       setTimeout(() => {
-        setShowSurvey(true); // 첫 클릭 시 설문조사 팝업 표시
-      }, 3000); // 3초 후에 팝업 표시
-      setIsFirstMakeClick(false); // 첫 클릭 상태 업데이트
+        setShowSurvey(true) // 첫 클릭 시 설문조사 팝업 표시
+      }, 3000) // 3초 후에 팝업 표시
+      setIsFirstMakeClick(false) // 첫 클릭 상태 업데이트
     }
 
-    const mood = searchParams.get('mood');
-    const json = await (await fetch(`${mood}make.json`)).json(); // 분위기 json 가져오기
-    json.messages.push({ role: 'user', content: sentence });
+    const mood = searchParams.get('mood')
+    const json = await (await fetch(`${mood}make.json`)).json() // 분위기 json 가져오기
+    json.messages.push({role: 'user', content: sentence})
 
     const fetchResponse = async () => {
-      const response = await openai.chat.completions.create(json);
-      return response;
-    };
+      const response = await openai.chat.completions.create(json)
+      return response
+    }
 
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000));
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
     try {
-      setIsLoading(true); // 로딩 시작
-      const response = await Promise.race([fetchResponse(), timeout]);
-      const answers = response.choices[0].message.content.split('\n'); // 문장을 개별 문장으로 분리
+      setIsLoading(true) // 로딩 시작
+      const response = await Promise.race([fetchResponse(), timeout])
+      const answers = response.choices[0].message.content.split('\n') // 문장을 개별 문장으로 분리
 
-      setHistory((prevHistory) => [
-        ...prevHistory,
-        { chips: sentence.split(',').map((word) => word.trim()), answers },
-      ]);
-      setSentence('');
+      setHistory(prevHistory => [...prevHistory, {chips: sentence.split(',').map(word => word.trim()), answers}])
+      setSentence('')
     } catch (error) {
       if (error.message === 'Timeout') {
-        alert('다시 시도해 주세요:)');
+        alert('다시 시도해 주세요:)')
       } else {
-        alert('오류가 발생했습니다: ' + error.message);
+        alert('오류가 발생했습니다: ' + error.message)
       }
     } finally {
-      setIsLoading(false); // 로딩 종료
+      setIsLoading(false) // 로딩 종료
     }
-  };
+  }
 
   useEffect(() => {
     const svg = d3.select(svgRef.current)
@@ -216,11 +234,48 @@ function Graph() {
     simulation.alpha(1).restart()
   }, [graph, loadingNode])
 
+  const saveSessionData = async (graph, sentence, history) => {
+    // Convert the graph to a simpler structure
+    const nodesObject = {}
+    graph.nodes.forEach((node, index) => {
+      nodesObject[index] = node.name
+    })
+
+    const simplifiedGraph = {
+      nodes: nodesObject,
+      links: graph.links.map(link => ({
+        source: graph.nodes.findIndex(n => n.id === link.source.id),
+        target: graph.nodes.findIndex(n => n.id === link.target.id)
+      }))
+    }
+
+    try {
+      await setDoc(doc(db, 'sessions', sessionId), {
+        key,
+        mood,
+        graph: simplifiedGraph,
+        sentence,
+        history,
+        timestamp: new Date()
+      })
+    } catch (e) {
+      console.error('Error adding document: ', e)
+    }
+  }
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      saveSessionData(graph, sentence, history)
+    }, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [graph, sentence, history])
+
   return (
     <div className="flex h-screen overflow-hidden">
       {sidebarOpen && (
-        <div className="absolute bottom-0 left-0 top-0 z-30 md:w-[500px] w-2/3 overflow-y-auto bg-gray-200 p-5">
-          <button onClick={toggleSidebar} className="mb-2.5 ml-2.5 p-1 md:text-lg text-sm">
+        <div className="absolute bottom-0 left-0 top-0 z-30 w-1/3 overflow-y-auto bg-gray-200 p-5 opacity-75">
+          <button onClick={toggleSidebar} className="mb-2.5 ml-2.5 p-1 text-sm md:text-lg">
             Close
           </button>
           {history.map((entry, index) => (
@@ -252,17 +307,9 @@ function Graph() {
           Home
         </button>
 
-        <svg ref={svgRef} className="w-full lg:w-[1820px] h-full flex-1"></svg>
-        <div className="mb-0 mt-0 flex w-full flex-col items-center justify-center">
-          <div className="flex w-full flex-wrap justify-center p-2.5">
-            {chips.map((chip, index) => (
-              <div key={index} className="m-1.5 cursor-pointer rounded-full bg-gray-300 p-2.5" onClick={() => handleChipClick(chip)}>
-                {chip}
-              </div>
-            ))}
-          </div>
-
-          <div className="fixed bottom-0 z-50 mb-8 flex w-screen items-center justify-center md:w-[600px]">
+        <svg ref={svgRef} className="h-full w-[1820px] flex-1"></svg>
+        <div className="fixed bottom-0 left-1/2 mb-4 -translate-x-1/2 transform">
+          <div className="z-50 flex w-screen items-center justify-center md:w-[600px]">
             <input
               type="text"
               placeholder="MAKE A SENTENCE USING THE CHOSEN WORD"
@@ -270,7 +317,7 @@ function Graph() {
               onChange={e => setSentence(e.target.value)}
               className="box-border h-10 w-3/4 p-2.5 text-xs md:w-full md:text-base"
             />
-            <button className="ml-1 md:ml-4 flex h-10 items-center justify-center rounded-lg bg-gray-400 px-5 md:text-base text-xs" onClick={handleMakeClick}>
+            <button className="ml-1 flex h-10 items-center justify-center rounded-lg bg-gray-400 px-5 text-xs md:ml-4 md:text-base" onClick={handleMakeClick}>
               MAKE
             </button>
           </div>
@@ -279,8 +326,9 @@ function Graph() {
           <div className="fixed bottom-0 right-0 z-50 m-4 w-96 rounded-lg bg-white p-4 shadow-lg">
             <h2 className="mb-2 text-lg font-bold">Survey</h2>
             <p className="mb-4">
-            Please participate in the demo version Google Form feedback. We are giving out a 10,000 won Starbucks gift certificate by lottery, so please show your interest.
-              <br /><br />
+              Please participate in the demo version Google Form feedback. We are giving out a 10,000 won Starbucks gift certificate by lottery, so please show your interest.
+              <br />
+              <br />
               <Link className="text-sky-500" href="https://forms.gle/WMtrJzuCT5dkt4267" target="_blank">
                 [Lyricist's Room Feedback Google Form]
               </Link>
