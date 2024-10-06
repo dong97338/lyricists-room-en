@@ -62,21 +62,60 @@ function Graph() {
   }
 
   const handleNodeClick = async (e, node) => {
-    e.stopPropagation()
+    e.stopPropagation();
     if (sidebarOpenRef.current) {
-      setSentence(prevSentence => (prevSentence ? `${prevSentence}, ${node.name}` : node.name)) // 사이드바가 열려 있을 때만 입력 필드에 단어 추가
-      return
+      setSentence(prevSentence => (prevSentence ? `${prevSentence}, ${node.name}` : node.name)); // 사이드바가 열려 있을 때만 입력 필드에 단어 추가
+      return;
     }
-    setLoadingNode(node.id)
-    const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`
-    const json = await (await fetch(`${mood}.json`)).json() // 분위기 json 가져오기
-    json.messages.push({role: 'user', content})
-    const response = await openai.chat.completions.create(json)
-    const [keyword, relatedWords] = response.choices[0].message.content.match(/(?<=1개: ).+|(?<=6개: ).+/g).map(words => words.split(', '))
-    const newNodes = [keyword, ...relatedWords].map((name, i) => ({id: graph.nodes.length + i + 1, name, x: node.x + 50 * Math.cos(i / 2), y: node.y + 50 * Math.sin(i / 2)}))
-    setGraph(prevGraph => ({nodes: [...prevGraph.nodes, ...newNodes], links: [...prevGraph.links, ...newNodes.map(newNode => ({source: node.id, target: newNode.id}))]}))
-    setLoadingNode(null)
-  }
+    setLoadingNode(node.id);
+    
+    // Prepare the content for GPT-4 API
+    const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`;
+    const json = await (await fetch(`${mood}.json`)).json(); // 분위기 json 가져오기
+    json.messages.push({ role: 'user', content });
+  
+    // Fetch the completion from OpenAI GPT-4
+    const response = await openai.chat.completions.create(json);
+    let [keyword, relatedWords] = response.choices[0].message.content.match(/(?<=1개: ).+|(?<=6개: ).+/g).map(words => words.split(', '));
+  
+    // Translate each keyword and related word to English using GPT-4 API
+    const translationContent = `Translate the following keywords to English as an array:\n${JSON.stringify([keyword, ...relatedWords])}`;
+    const translationJson = {
+      model: "gpt-4o",
+      messages: [{ role: 'user', content: translationContent }]
+    };
+  
+    const translationResponse = await openai.chat.completions.create(translationJson);
+    let translatedWords;
+  
+    try {
+      // Ensure valid JSON response
+      translatedWords = JSON.parse(translationResponse.choices[0].message.content);
+    } catch (error) {
+      console.error("Invalid JSON response from GPT-4:", translationResponse.choices[0].message.content);
+      // Fallback to original keywords if translation fails
+      translatedWords = [keyword, ...relatedWords];
+    }
+  
+    // Create new nodes with the translated keywords
+    const newNodes = translatedWords.map((name, i) => ({
+      id: graph.nodes.length + i + 1,
+      name,
+      x: node.x + 50 * Math.cos(i / 2),
+      y: node.y + 50 * Math.sin(i / 2)
+    }));
+  
+    // Update the graph with the new nodes and links
+    setGraph(prevGraph => ({
+      nodes: [...prevGraph.nodes, ...newNodes],
+      links: [...prevGraph.links, ...newNodes.map(newNode => ({ source: node.id, target: newNode.id }))]
+    }));
+    setLoadingNode(null);
+  };
+  
+  
+  
+  
 
   const handleChipClick = chip => setSentence(prevSentence => (prevSentence ? `${prevSentence}, ${chip}` : chip))
 
