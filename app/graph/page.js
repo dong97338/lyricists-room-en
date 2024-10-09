@@ -71,7 +71,7 @@ function Graph() {
     
     // Prepare the content for GPT-4 API
     const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`;
-    const json = await (await fetch(`${mood}.json`)).json(); // 분위기 json 가져오기
+    const json = JSON.parse(process.env.NEXT_PUBLIC_PROMPT)[mood]; // 분위기 json 가져오기
     json.messages.push({ role: 'user', content });
   
     // Fetch the completion from OpenAI GPT-4
@@ -102,7 +102,7 @@ function Graph() {
       id: graph.nodes.length + i + 1,
       name,
       x: node.x + 50 * Math.cos(i / 2),
-      y: node.y + 50 * Math.sin(i / 2)
+      y: node.y + 50 * Math.sin(i / 2)  
     }));
   
     // Update the graph with the new nodes and links
@@ -132,7 +132,7 @@ function Graph() {
     }
 
     const mood = searchParams.get('mood')
-    const json = await (await fetch(`${mood}make.json`)).json() // 분위기 json 가져오기
+    const json = JSON.parse(process.env.NEXT_PUBLIC_PROMPT)[`${mood}make`]; // 분위기 json 가져오기
     json.messages.push({role: 'user', content: sentence})
 
     const fetchResponse = async () => {
