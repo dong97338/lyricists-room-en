@@ -71,7 +71,76 @@ function Graph() {
     
     // Prepare the content for GPT-4 API
     const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`;
-    const json = JSON.parse(process.env.NEXT_PUBLIC_PROMPT)[mood]; // 분위기 json 가져오기
+    let json
+    switch (searchParams.get('mood')) {
+      case 'Anger':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANGER)
+        break
+      case 'Angermake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANGERMAKE)
+        break
+      case 'Anxiety':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETY)
+        break
+      case 'Anxietymake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETYMAKE)
+        break
+      case 'Cheerfulness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESS)
+        break
+      case 'Cheerfulnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESSMAKE)
+        break
+      case 'Confidence':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCE)
+        break
+      case 'Confidencemake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCEMAKE)
+        break
+      case 'Depression':
+        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSION)
+        break
+      case 'Depressionmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSIONMAKE)
+        break
+      case 'Excitement':
+        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENT)
+        break
+      case 'Excitementmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENTMAKE)
+        break
+      case 'Hopeful':
+        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFUL)
+        break
+      case 'Hopefulmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFULMAKE)
+        break
+      case 'Loneliness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESS)
+        break
+      case 'Lonelinessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESSMAKE)
+        break
+      case 'Nostalgia':
+        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIA)
+        break
+      case 'Nostalgiamake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIAMAKE)
+        break
+      case 'Peacefulness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESS)
+        break
+      case 'Peacefulnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESSMAKE)
+        break
+      case 'Sadness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESS)
+        break
+      case 'Sadnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESSMAKE)
+        break
+    }
+    
     json.messages.push({ role: 'user', content });
   
     // Fetch the completion from OpenAI GPT-4
@@ -130,9 +199,75 @@ function Graph() {
       }, 3000) // 3초 후에 팝업 표시
       setIsFirstMakeClick(false) // 첫 클릭 상태 업데이트
     }
-
-    const mood = searchParams.get('mood')
-    const json = JSON.parse(process.env.NEXT_PUBLIC_PROMPT)[`${mood}make`]; // 분위기 json 가져오기
+    let json
+    switch (searchParams.get('mood')+'make') {
+      case 'Anger':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANGER)
+        break
+      case 'Angermake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANGERMAKE)
+        break
+      case 'Anxiety':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETY)
+        break
+      case 'Anxietymake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETYMAKE)
+        break
+      case 'Cheerfulness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESS)
+        break
+      case 'Cheerfulnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESSMAKE)
+        break
+      case 'Confidence':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCE)
+        break
+      case 'Confidencemake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCEMAKE)
+        break
+      case 'Depression':
+        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSION)
+        break
+      case 'Depressionmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSIONMAKE)
+        break
+      case 'Excitement':
+        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENT)
+        break
+      case 'Excitementmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENTMAKE)
+        break
+      case 'Hopeful':
+        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFUL)
+        break
+      case 'Hopefulmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFULMAKE)
+        break
+      case 'Loneliness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESS)
+        break
+      case 'Lonelinessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESSMAKE)
+        break
+      case 'Nostalgia':
+        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIA)
+        break
+      case 'Nostalgiamake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIAMAKE)
+        break
+      case 'Peacefulness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESS)
+        break
+      case 'Peacefulnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESSMAKE)
+        break
+      case 'Sadness':
+        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESS)
+        break
+      case 'Sadnessmake':
+        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESSMAKE)
+        break
+    }
     json.messages.push({role: 'user', content: sentence})
 
     const fetchResponse = async () => {
