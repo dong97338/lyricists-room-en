@@ -7,7 +7,24 @@ import OpenAI from 'openai'
 import dotenv from 'dotenv'
 import {initializeApp, getApps} from 'firebase/app'
 import {getFirestore, doc, setDoc} from 'firebase/firestore'
+import { decrypt } from './../encryption.js'; // 암호화 함수 import
+
 dotenv.config()
+
+const NEXT_PUBLIC_ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY
+
+// 암호화된 JSON 파일 가져오기 함수
+async function fetchAndDecryptJSON(mood) {
+  // 암호화된 JSON 파일을 fetch로 가져옴
+  const response = await fetch(`${mood}.enc`); // 암호화된 JSON 파일 경로
+  const encryptedData = await response.text(); // JSON 파일이 암호화되어 있으므로 텍스트로 가져옴
+  
+  // JSON 데이터 복호화
+  const decryptedJSON = decrypt(encryptedData, NEXT_PUBLIC_ENCRYPTION_KEY);
+  
+  // 복호화된 JSON을 JavaScript 객체로 변환
+  return JSON.parse(decryptedJSON);
+}
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -71,75 +88,8 @@ function Graph() {
     
     // Prepare the content for GPT-4 API
     const content = `""키워드"": ${node.name}\n""키메시지"": ${key || ''}\n*[최종 답변 형태] 외 답변 금지\n**[답변 금지 단어]: ${graph.nodes.map(node => node.name).join(', ')}`;
-    let json
-    switch (searchParams.get('mood')) {
-      case 'Anger':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANGER)
-        break
-      case 'Angermake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANGERMAKE)
-        break
-      case 'Anxiety':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETY)
-        break
-      case 'Anxietymake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETYMAKE)
-        break
-      case 'Cheerfulness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESS)
-        break
-      case 'Cheerfulnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESSMAKE)
-        break
-      case 'Confidence':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCE)
-        break
-      case 'Confidencemake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCEMAKE)
-        break
-      case 'Depression':
-        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSION)
-        break
-      case 'Depressionmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSIONMAKE)
-        break
-      case 'Excitement':
-        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENT)
-        break
-      case 'Excitementmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENTMAKE)
-        break
-      case 'Hopeful':
-        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFUL)
-        break
-      case 'Hopefulmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFULMAKE)
-        break
-      case 'Loneliness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESS)
-        break
-      case 'Lonelinessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESSMAKE)
-        break
-      case 'Nostalgia':
-        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIA)
-        break
-      case 'Nostalgiamake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIAMAKE)
-        break
-      case 'Peacefulness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESS)
-        break
-      case 'Peacefulnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESSMAKE)
-        break
-      case 'Sadness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESS)
-        break
-      case 'Sadnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESSMAKE)
-        break
-    }
+    const json = await fetchAndDecryptJSON(mood)
+
     
     json.messages.push({ role: 'user', content });
   
@@ -199,75 +149,8 @@ function Graph() {
       }, 3000) // 3초 후에 팝업 표시
       setIsFirstMakeClick(false) // 첫 클릭 상태 업데이트
     }
-    let json
-    switch (searchParams.get('mood')+'make') {
-      case 'Anger':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANGER)
-        break
-      case 'Angermake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANGERMAKE)
-        break
-      case 'Anxiety':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETY)
-        break
-      case 'Anxietymake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_ANXIETYMAKE)
-        break
-      case 'Cheerfulness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESS)
-        break
-      case 'Cheerfulnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CHEERFULNESSMAKE)
-        break
-      case 'Confidence':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCE)
-        break
-      case 'Confidencemake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_CONFIDENCEMAKE)
-        break
-      case 'Depression':
-        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSION)
-        break
-      case 'Depressionmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_DEPRESSIONMAKE)
-        break
-      case 'Excitement':
-        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENT)
-        break
-      case 'Excitementmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_EXCITEMENTMAKE)
-        break
-      case 'Hopeful':
-        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFUL)
-        break
-      case 'Hopefulmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_HOPEFULMAKE)
-        break
-      case 'Loneliness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESS)
-        break
-      case 'Lonelinessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_LONELINESSMAKE)
-        break
-      case 'Nostalgia':
-        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIA)
-        break
-      case 'Nostalgiamake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_NOSTALGIAMAKE)
-        break
-      case 'Peacefulness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESS)
-        break
-      case 'Peacefulnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_PEACEFULNESSMAKE)
-        break
-      case 'Sadness':
-        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESS)
-        break
-      case 'Sadnessmake':
-        json = JSON.parse(process.env.NEXT_PUBLIC_SADNESSMAKE)
-        break
-    }
+    const json = await fetchAndDecryptJSON(mood+'make')
+
     json.messages.push({role: 'user', content: sentence})
 
     const fetchResponse = async () => {
